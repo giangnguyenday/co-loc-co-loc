@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Tet Lucky Horse - Share</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Ca Loc Ca Loc - Share</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -13,15 +13,16 @@
     <link rel="stylesheet" href="./css/styles.css" />
   </head>
   <body class="page horse-page">
+    <div class="horse-bg" aria-hidden="true"></div>
     <header class="topbar">
-      <a class="brand" href="index.html" aria-label="Tet Lucky Horse">
+      <a class="brand" href="index.html" aria-label="Ca Loc Ca Loc">
         <svg width="20" height="29" viewBox="0 0 20 29" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M7.43083 12.9135C8.6372 11.7536 10.349 10.8177 12.8802 10.8177C17.0047 10.8177 20 13.3995 20 17.9252C20 24.6604 14.3195 29 7.66571 29C4.82642 29 2.80265 27.6161 2.80265 24.6225L2.76319 7.8205C2.76319 6.43479 1.82365 5.57482 0.508296 5.35079C0.158787 5.27491 0.00282288 5.12676 0.00282288 4.82686V4.07709C-0.0234842 3.81513 0.136238 3.57123 0.391793 3.47909C2.92104 2.46916 4.05036 1.68327 5.65322 0.301169C5.83925 0.0970159 6.11171 -0.0131904 6.39358 0.00126286H7.05501C7.31996 0.00848951 7.53042 0.219869 7.5229 0.476415C7.5229 0.480028 7.5229 0.483642 7.5229 0.487255L7.43083 12.9135ZM7.50975 23.3921C7.50975 25.1121 8.71424 26.01 10.272 26.01C13.3462 26.01 15.9092 23.7282 15.9092 20.2865C15.9092 16.8448 13.6543 14.8249 10.6948 14.8249C9.49594 14.8303 8.3497 15.3019 7.51539 16.1293L7.50975 23.3921Z" fill="#D50B0B"/>
         </svg>
       </a>
       <nav class="nav">
-        <a class="nav-link" href="#" aria-label="Switch language to Vietnamese">vi</a>
-        <a class="nav-link" href="info.html">info</a>
+        <a class="nav-link lang-link" href="#" aria-label="Switch language to Vietnamese">VIE</a>
+        <a class="nav-link info-link" href="info.html">Information</a>
       </nav>
     </header>
 
@@ -36,17 +37,46 @@
         <div class="horse-circle" aria-hidden="true"></div>
 
         <div class="horse-content">
-          <div id="horseFortune" class="heading-2">A wish for fortune and prosperity.</div>
-          <div id="horseDescription" class="body-text">
-            Tựa hình ảnh chú ngựa thong dong sải bước khắp địa cầu, chúc cho mọi
-            hành trình của bạn luôn suôn sẻ; dù vượt vạn dặm xa xôi, vẫn luôn may
-            mắn và bình an.
+          <div
+            class="fortune-carousel"
+            id="fortuneCarousel"
+            role="region"
+            aria-label="Fortune details"
+          >
+            <div class="fortune-track">
+              <div class="fortune-slide" data-slide="0">
+                <div id="horseFortune" class="heading-2">A wish for fortune and prosperity.</div>
+              </div>
+              <div class="fortune-slide" data-slide="1">
+                <div class="fortune-detail">
+                  <div id="horseDescription" class="body-text">
+                    Tựa hình ảnh chú ngựa thong dong sải bước khắp địa cầu, chúc cho mọi
+                    hành trình của bạn luôn suôn sẻ; dù vượt vạn dặm xa xôi, vẫn luôn may
+                    mắn và bình an.
+                  </div>
+                  <div class="horse-meta inline">
+                    <div id="horseCodeBottom" class="heading-3">DESIGNER</div>
+                    <div id="horseDesigner" class="highlight">Giang Nguyễn</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="horse-meta">
-          <div id="horseCodeBottom" class="heading-3">CODE 01</div>
-          <div id="horseDesigner" class="highlight">Giang Nguyễn</div>
+          <div class="fortune-dots" role="tablist" aria-label="Fortune pages">
+            <button
+              class="fortune-dot is-active"
+              type="button"
+              aria-label="Fortune message"
+              aria-current="true"
+              data-slide="0"
+            ></button>
+            <button
+              class="fortune-dot"
+              type="button"
+              aria-label="Fortune description"
+              data-slide="1"
+            ></button>
+          </div>
         </div>
 
         <a class="btn fortune-button" href="index.html">Draw more fortune</a>

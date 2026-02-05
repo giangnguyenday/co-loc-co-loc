@@ -50,6 +50,18 @@ export function setTheme(themeCfg = {}) {
   if (themeCfg.bg) {
     root.style.setProperty("--horse-bg", themeCfg.bg);
   }
+  if (themeCfg.bgSolid) {
+    root.style.setProperty("--horse-bg-solid", themeCfg.bgSolid);
+  } else if (themeCfg.bg) {
+    if (themeCfg.bg.includes("gradient")) {
+      const firstVar = themeCfg.bg.match(/var\([^)]+\)/);
+      if (firstVar && firstVar[0]) {
+        root.style.setProperty("--horse-bg-solid", firstVar[0]);
+      }
+    } else {
+      root.style.setProperty("--horse-bg-solid", themeCfg.bg);
+    }
+  }
   if (themeCfg.text) {
     root.style.setProperty("--horse-text", themeCfg.text);
   }
@@ -68,7 +80,7 @@ export function setCopy(outcome) {
   if (dom.codeName) dom.codeName.textContent = outcome.codeName || "";
   if (dom.fortune) dom.fortune.textContent = outcome.fortune || "";
   if (dom.description) dom.description.textContent = outcome.description || "";
-  if (dom.codeBottom) dom.codeBottom.textContent = outcome.code || "";
+  if (dom.codeBottom) dom.codeBottom.textContent = "DESIGNER";
   if (dom.designer) dom.designer.textContent = outcome.designer || "";
 }
 
