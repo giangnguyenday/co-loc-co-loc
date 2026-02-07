@@ -73,6 +73,23 @@ function showError(message) {
   errorBox.classList.remove("hidden");
 }
 
+function recordDiscovery(horseId) {
+  if (!horseId) {
+    return;
+  }
+  try {
+    const raw = window.localStorage.getItem("tethorse.discoveredHorses");
+    const parsed = raw ? JSON.parse(raw) : [];
+    const list = Array.isArray(parsed) ? parsed : [];
+    if (!list.includes(horseId)) {
+      list.push(horseId);
+      window.localStorage.setItem("tethorse.discoveredHorses", JSON.stringify(list));
+    }
+  } catch (error) {
+    // ignore storage errors
+  }
+}
+
 if (!horseId) {
   showError("Missing horse id.");
 } else {
@@ -80,6 +97,7 @@ if (!horseId) {
   if (!outcome) {
     showError("Horse not found.");
   } else {
+    recordDiscovery(outcome.id);
     renderOutcome(outcome);
   }
 }

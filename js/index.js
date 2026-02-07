@@ -3,7 +3,14 @@ import { HORSES } from "./horses.js";
 const SHAKE_THRESHOLD = 24;
 const COOLDOWN_MS = 1200;
 const MOTION_KEY = "tethorse.motionGranted";
-const FLOWER_TOTAL = 20;
+const DISCOVERED_KEY = "tethorse.discoveredHorses";
+const FLOWER_TOTAL = 15;
+const FLOWER_FALL_INTERVAL = 8000;
+const FLOWER_FALL_DURATION = 4000;
+const FLOWER_FALL_BOTTOM_RATIO = 0.96;
+const HORSE_DANGLE_INTERVAL = 4000; // average interval between horse dangles
+const HORSE_DANGLE_DURATION_MIN = 6000; // min duration of a horse dangle
+const HORSE_DANGLE_DURATION_MAX = 1200; // max duration of a horse dangle
 
 const enableMotionButton = document.getElementById("enableMotionButton");
 const drawFortuneButton = document.getElementById("drawFortuneBtn");
@@ -16,6 +23,9 @@ let armed = true;
 let motionEnabled = false;
 let flowersLoaded = false;
 let motionSeen = false;
+let horsesLoaded = false;
+let flowerFallTimer = null;
+let horseDangleTimer = null;
 
 const supportsMotion = "DeviceMotionEvent" in window;
 const needsPermission =
@@ -29,6 +39,19 @@ function setStatus(message) {
   if (motionStatusText) {
     motionStatusText.textContent = message;
   }
+}
+
+function getDiscoveredHorses() {
+  try {
+    const raw = window.localStorage.getItem(DISCOVERED_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(parsed)) {
+      return parsed.filter((value) => typeof value === "string" && value.trim().length);
+    }
+  } catch (error) {
+    // ignore storage errors
+  }
+  return [];
 }
 
 function showDrawButton() {
@@ -174,14 +197,20 @@ function hideMotionModal() {
   motionPrompt?.classList.add("hidden");
 }
 
-function createFlowerElement({ svg, size, spin }, x, y) {
+function createFlowerElement({ svg, size, spin }, x, y, containerHeight) {
   const flower = document.createElement("span");
   flower.className = `tree-flower${spin ? " tree-flower--spin" : ""}`;
 
-  flower.style.setProperty("--flower-x", `${x}%`);
-  flower.style.setProperty("--flower-y", `${y}%`);
+  flower.style.setProperty("--flower-x", `${x}px`);
+  flower.style.setProperty("--flower-y", `${y}px`);
   flower.style.setProperty("--flower-size", `${size}px`);
   flower.style.setProperty("--flower-delay", `${Math.random() * 0.6}s`);
+  flower.style.setProperty("--flower-fall-duration", `${FLOWER_FALL_DURATION}ms`);
+  const fallBottom = containerHeight * FLOWER_FALL_BOTTOM_RATIO;
+  const fallDistance = Math.max(0, fallBottom - size / 2 - y);
+  flower.style.setProperty("--flower-fall-distance", `${fallDistance}px`);
+  flower.dataset.size = `${size}`;
+  flower.dataset.y = `${y}`;
 
   if (spin) {
     const duration = 6 + Math.random() * 6;
@@ -230,6 +259,11 @@ function seedFlowers() {
     }
   ];
 
+  const { width, height } = container.getBoundingClientRect();
+  if (!width || !height) {
+    return;
+  }
+
   const placed = [];
   const maxTries = flowerCount * 20;
   let tries = 0;
@@ -267,10 +301,14 @@ function seedFlowers() {
     [distribution[i], distribution[j]] = [distribution[j], distribution[i]];
   }
 
+  const paddingX = Math.max(12, width * 0.05);
+  const paddingY = Math.max(12, height * 0.05);
+  const maxHeight = height * 0.75;
+
   while (placed.length < distribution.length && tries < maxTries) {
     tries += 1;
-    const x = 5 + Math.random() * 90;
-    const y = 5 + Math.random() * 70;
+    const x = paddingX + Math.random() * (width - paddingX * 2);
+    const y = paddingY + Math.random() * (maxHeight - paddingY);
     const flower = distribution[placed.length];
     const minGap = Math.max(12, flower.size * 1.8);
 
@@ -285,16 +323,115 @@ function seedFlowers() {
     }
 
     placed.push({ x, y });
-    container.appendChild(createFlowerElement(flower, x, y));
+    const element = createFlowerElement(flower, x, y, height);
+    container.appendChild(element);
   }
 
   while (placed.length < distribution.length) {
-    const x = 5 + Math.random() * 90;
-    const y = 5 + Math.random() * 70;
+    const x = paddingX + Math.random() * (width - paddingX * 2);
+    const y = paddingY + Math.random() * (maxHeight - paddingY);
     const flower = distribution[placed.length];
     placed.push({ x, y });
-    container.appendChild(createFlowerElement(flower, x, y));
+    const element = createFlowerElement(flower, x, y, height);
+    container.appendChild(element);
   }
+}
+
+function startFlowerFall() {
+  if (flowerFallTimer) {
+    return;
+  }
+  const container = document.querySelector(".hero-tree-flowers");
+  if (!container) {
+    return;
+  }
+  flowerFallTimer = window.setInterval(() => {
+    const candidates = Array.from(
+      container.querySelectorAll(".tree-flower:not(.is-falling)")
+    );
+    if (!candidates.length) {
+      window.clearInterval(flowerFallTimer);
+      flowerFallTimer = null;
+      return;
+    }
+    const target = candidates[Math.floor(Math.random() * candidates.length)];
+    if (!target) {
+      return;
+    }
+    const size = parseFloat(target.dataset.size || target.style.getPropertyValue("--flower-size"));
+    const y = parseFloat(target.dataset.y || target.style.getPropertyValue("--flower-y"));
+    if (Number.isFinite(size) && Number.isFinite(y)) {
+      const fallBottom = container.clientHeight * FLOWER_FALL_BOTTOM_RATIO;
+      const fallDistance = Math.max(0, fallBottom - size / 2 - y);
+      target.style.setProperty("--flower-fall-distance", `${fallDistance}px`);
+    }
+    target.classList.add("is-falling");
+  }, FLOWER_FALL_INTERVAL);
+}
+
+function createHorseIcon(x, y) {
+  const icon = document.createElement("span");
+  icon.className = "tree-horse";
+  icon.style.left = `${x}px`;
+  icon.style.top = `${y}px`;
+  const swayAngle = (Math.random() * 6 + 8).toFixed(2);
+  const fadeDelay = Math.random() * 0.6;
+  icon.style.setProperty("--horse-sway-angle", `${swayAngle}deg`);
+  icon.style.setProperty("--horse-fade-delay", `${fadeDelay}s`);
+  icon.innerHTML =
+    '<span class="tree-horse-inner"><svg width="48" height="42" viewBox="0 0 48 42" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M47.3185 29.4506C47.0708 24.8723 47.437 16.7848 41.5063 16.0778C43.9129 13.3326 45.6802 11.2011 46.1734 7.12453C46.6306 3.33579 45.9257 0 45.9257 0H30.9488C32.6801 2.2542 35.1184 8.55748 33.0315 12.0562C31.6748 14.3274 28.4448 14.4882 27.4162 10.4794C24.9271 0.764098 15.5485 0 7.51177 0H0L1.03501 18.5437L4.95282 18.5902L9.00609 16.3128C9.00609 19.2125 6.21642 22.252 1.0329 22.252L0 42H8.87697C11.5269 42 13.6774 39.8516 13.6774 37.1995V36.5878C15.9231 38.7108 19.4472 40.0591 24 40.0591C28.5528 40.0591 32.0494 38.7108 34.3057 36.5836V37.1995C34.3057 39.8495 36.454 42 39.1061 42H48L47.3206 29.4506H47.3185Z" fill="#D50B0B"/></svg></span>';
+  return icon;
+}
+
+function seedHorseIcons() {
+  if (horsesLoaded) {
+    return;
+  }
+  const container = document.querySelector(".hero-tree-horses");
+  if (!container) {
+    return;
+  }
+  const discovered = getDiscoveredHorses();
+  if (!discovered.length) {
+    return;
+  }
+  horsesLoaded = true;
+  container.innerHTML = "";
+
+  const { width, height } = container.getBoundingClientRect();
+  if (!width || !height) {
+    return;
+  }
+
+  const size = 48;
+  const maxHeight = height * 0.75;
+  const minGap = size * 1.2;
+  const maxTries = discovered.length * 25;
+  const placed = [];
+  let tries = 0;
+
+  while (placed.length < discovered.length && tries < maxTries) {
+    tries += 1;
+    const x = size / 2 + Math.random() * (width - size);
+    const y = size / 2 + Math.random() * (maxHeight - size);
+    const tooClose = placed.some((point) => Math.hypot(point.x - x, point.y - y) < minGap);
+    if (tooClose) {
+      continue;
+    }
+    placed.push({ x, y });
+  }
+
+  while (placed.length < discovered.length) {
+    const x = size / 2 + Math.random() * (width - size);
+    const y = size / 2 + Math.random() * (maxHeight - size);
+    placed.push({ x, y });
+  }
+
+  placed.forEach((point) => {
+    container.appendChild(createHorseIcon(point.x, point.y));
+  });
+
+  startHorseDangles(container);
 }
 
 function setupTreeFlowers() {
@@ -304,6 +441,7 @@ function setupTreeFlowers() {
   }
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     seedFlowers();
+    startFlowerFall();
     return;
   }
 
@@ -313,14 +451,76 @@ function setupTreeFlowers() {
 
   if (!hasAnimation) {
     seedFlowers();
+    startFlowerFall();
     return;
   }
 
-  wrap.addEventListener("animationend", seedFlowers, { once: true });
+  wrap.addEventListener(
+    "animationend",
+    () => {
+      seedFlowers();
+      startFlowerFall();
+    },
+    { once: true }
+  );
   const durationMs = parseFloat(style.animationDuration) * 1000;
   if (Number.isFinite(durationMs) && durationMs > 0) {
-    setTimeout(seedFlowers, durationMs + 50);
+    setTimeout(() => {
+      seedFlowers();
+      startFlowerFall();
+    }, durationMs + 50);
   }
+}
+
+function setupTreeHorseIcons() {
+  const wrap = document.querySelector(".hero-tree-wrap");
+  if (!wrap) {
+    return;
+  }
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    seedHorseIcons();
+    return;
+  }
+
+  const style = window.getComputedStyle(wrap);
+  const hasAnimation =
+    style.animationName && style.animationName !== "none" && parseFloat(style.animationDuration) > 0;
+
+  if (!hasAnimation) {
+    seedHorseIcons();
+    return;
+  }
+
+  wrap.addEventListener("animationend", seedHorseIcons, { once: true });
+  const durationMs = parseFloat(style.animationDuration) * 1000;
+  if (Number.isFinite(durationMs) && durationMs > 0) {
+    setTimeout(seedHorseIcons, durationMs + 60);
+  }
+}
+
+function startHorseDangles(container) {
+  if (horseDangleTimer) {
+    window.clearInterval(horseDangleTimer);
+    horseDangleTimer = null;
+  }
+  const horses = Array.from(container.querySelectorAll(".tree-horse"));
+  if (!horses.length) {
+    return;
+  }
+  horseDangleTimer = window.setInterval(() => {
+    const target = horses[Math.floor(Math.random() * horses.length)];
+    if (!target || target.classList.contains("is-dangling")) {
+      return;
+    }
+    const duration =
+      HORSE_DANGLE_DURATION_MIN +
+      Math.random() * (HORSE_DANGLE_DURATION_MAX - HORSE_DANGLE_DURATION_MIN);
+    target.style.setProperty("--horse-sway-duration", `${duration}ms`);
+    target.classList.add("is-dangling");
+    window.setTimeout(() => {
+      target.classList.remove("is-dangling");
+    }, duration);
+  }, HORSE_DANGLE_INTERVAL);
 }
 
 enableMotionButton?.addEventListener("click", requestMotionPermission);
@@ -339,4 +539,5 @@ drawFortuneButton?.addEventListener("click", () => {
 });
 
 setupTreeFlowers();
+setupTreeHorseIcons();
 setupMotionUI();

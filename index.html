@@ -65,6 +65,7 @@
           <path d="M232 97L161 40" stroke="#D50B0B" stroke-width="2" stroke-linecap="square" stroke-dasharray="0.01 8"/>
           </svg>
           <div class="hero-tree-flowers" aria-hidden="true"></div>
+          <div class="hero-tree-horses" aria-hidden="true"></div>
         </div>
         <div class="hero-cta">
           <div class="controls">
@@ -98,14 +99,14 @@
     <div id="motionPrompt" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="motionPromptTitle">
       <div class="modal-backdrop" data-close="true"></div>
       <div class="modal-card">
-        <h2 id="motionPromptTitle">Enable Motion Access</h2>
-        <p>
+        <h2 id="motionPromptTitle" class="heading-2 modal-title">Enable Motion Access</h2>
+        <p class="body-text">
           Motion access lets you shake the phone to draw your lucky horse. This
           is optional and can be enabled once.
         </p>
         <div class="modal-actions">
-          <button id="enableMotionButton" class="btn primary heading-3">Enable Motion</button>
-          <button id="closeMotionButton" class="btn ghost heading-3" data-close="true">Not now</button>
+          <button id="enableMotionButton" class="btn motion-enable heading-3">Enable Motion</button>
+          <button id="closeMotionButton" class="btn motion-cancel heading-3" data-close="true">Not now</button>
         </div>
       </div>
     </div>

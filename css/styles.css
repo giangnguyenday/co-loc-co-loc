@@ -376,6 +376,12 @@ a {
   pointer-events: none;
 }
 
+.hero-tree-horses {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .tree-flower {
   position: absolute;
   left: var(--flower-x, 50%);
@@ -394,10 +400,93 @@ a {
   display: block;
 }
 
+.tree-horse {
+  position: absolute;
+  width: 48px;
+  height: 42px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.94);
+  animation: horse-fade 0.6s ease forwards var(--horse-fade-delay, 0s);
+  pointer-events: auto;
+}
+
+.tree-horse-inner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 10%;
+  animation: none;
+  will-change: transform;
+}
+
+.tree-horse.is-dangling .tree-horse-inner {
+  animation: horse-dangle var(--horse-sway-duration, 1.1s) ease-in-out;
+}
+
+.tree-horse svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: filter 0.2s ease;
+}
+
+.tree-horse:hover svg {
+  filter: drop-shadow(0 0 6px var(--colors-primary-yellow))
+    drop-shadow(0 0 14px var(--colors-primary-yellow));
+}
+
+@keyframes horse-fade {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes horse-dangle {
+  0% {
+    transform: rotate(0deg);
+  }
+  12% {
+    transform: rotate(var(--horse-sway-angle, -8deg));
+  }
+  24% {
+    transform: rotate(calc(var(--horse-sway-angle, -8deg) * -1));
+  }
+  36% {
+    transform: rotate(var(--horse-sway-angle, -8deg));
+  }
+  48% {
+    transform: rotate(calc(var(--horse-sway-angle, -8deg) * -1));
+  }
+  60% {
+    transform: rotate(var(--horse-sway-angle, -8deg));
+  }
+  72% {
+    transform: rotate(calc(var(--horse-sway-angle, -8deg) * -1));
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
 .tree-flower--spin svg {
   transform-origin: 50% 50%;
   animation: flower-spin var(--spin-duration, 12s) ease-in-out infinite;
   animation-delay: var(--spin-delay, 0s);
+}
+
+.tree-flower.is-falling {
+  animation: flower-fall var(--flower-fall-duration, 0.9s) ease-in forwards;
+  animation-delay: 0s;
+  opacity: 1;
+}
+
+.tree-flower.is-falling svg {
+  animation: none !important;
 }
 
 @keyframes flower-spin {
@@ -418,6 +507,15 @@ a {
   to {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes flower-fall {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    transform: translate(-50%, -50%) translateY(var(--flower-fall-distance, 0px)) scale(1);
   }
 }
 
@@ -444,6 +542,16 @@ a {
   }
 
   .shake-icon {
+    animation: none !important;
+  }
+
+  .tree-horse {
+    animation: none !important;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .tree-horse-inner {
     animation: none !important;
   }
 }
@@ -588,29 +696,46 @@ a {
   position: relative;
   z-index: 1;
   width: min(420px, 90vw);
-  background: var(--colors-white);
-  border-radius: 20px;
+  background: var(--colors-primary-yellow);
+  border-radius: var(--space-24);
   padding: var(--space-24);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  border: none;
+  box-shadow: 0 4px 12px 0 rgba(64, 64, 26, 0.1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
+  color: var(--colors-primary-dark-green);
 }
 
-.modal-card h2 {
+.modal-card .modal-title {
   margin: 0;
 }
 
 .modal-card p {
   margin: 0;
-  color: var(--muted);
+  color: rgba(64, 64, 26, 0.85);
 }
 
 .modal-actions {
   display: flex;
   gap: var(--space-10);
   flex-wrap: wrap;
+}
+
+.btn.motion-enable {
+  background: var(--colors-black);
+  color: var(--colors-white);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.btn.motion-cancel {
+  background: var(--colors-primary-red);
+  color: var(--colors-white);
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .card {
