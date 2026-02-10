@@ -101,3 +101,26 @@ if (!horseId) {
     renderOutcome(outcome);
   }
 }
+
+function setupPagePreloader() {
+  const preloader = document.getElementById("pagePreloader");
+  if (!preloader) {
+    return;
+  }
+  document.body.classList.add("is-preloading");
+  const hidePreloader = () => {
+    preloader.classList.add("is-hidden");
+    document.body.classList.remove("is-preloading");
+    window.setTimeout(() => {
+      preloader.remove();
+    }, 500);
+  };
+
+  if (document.readyState === "complete") {
+    window.setTimeout(hidePreloader, 0);
+    return;
+  }
+  window.addEventListener("load", hidePreloader, { once: true });
+}
+
+setupPagePreloader();

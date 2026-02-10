@@ -5,18 +5,25 @@ const COOLDOWN_MS = 1200;
 const MOTION_KEY = "tethorse.motionGranted";
 const DISCOVERED_KEY = "tethorse.discoveredHorses";
 const FLOWER_TOTAL = 15;
-const FLOWER_FALL_INTERVAL = 8000;
+const FLOWER_FALL_INTERVAL = 12000;
 const FLOWER_FALL_DURATION = 4000;
 const FLOWER_FALL_BOTTOM_RATIO = 0.96;
 const HORSE_DANGLE_INTERVAL = 4000; // average interval between horse dangles
 const HORSE_DANGLE_DURATION_MIN = 6000; // min duration of a horse dangle
 const HORSE_DANGLE_DURATION_MAX = 1200; // max duration of a horse dangle
+const HORSE_GRAVITY_MAX_ANGLE = 90;
+const HORSE_GRAVITY_SMOOTHING = 0.12;
+const HORSE_GRAVITY_CSS_VAR = "--horse-gravity-rotation";
+const HORSE_IDS = HORSES.map((horse) => horse.id);
+const SECRET_HORSE_ID = HORSES.find((horse) => horse.secret)?.id || null;
+const NON_SECRET_IDS = HORSES.filter((horse) => !horse.secret).map((horse) => horse.id);
 
 const enableMotionButton = document.getElementById("enableMotionButton");
 const drawFortuneButton = document.getElementById("drawFortuneBtn");
 const motionStatusText = document.getElementById("motionStatusText");
 const motionPrompt = document.getElementById("motionPrompt");
 const closeMotionButton = document.getElementById("closeMotionButton");
+const shakeIcon = document.querySelector(".shake-icon");
 
 let lastTrigger = 0;
 let armed = true;
@@ -26,6 +33,13 @@ let motionSeen = false;
 let horsesLoaded = false;
 let flowerFallTimer = null;
 let horseDangleTimer = null;
+let horseGravityLayer = null;
+let gravityRaf = null;
+let gravityTarget = 0;
+let gravityCurrent = 0;
+let motionPromptDismissed = false;
+let flowerSeedRetries = 0;
+let flowerResizeObserver = null;
 
 const supportsMotion = "DeviceMotionEvent" in window;
 const needsPermission =
@@ -34,6 +48,14 @@ const isMobile =
   typeof navigator !== "undefined" &&
   ((navigator.userAgentData && navigator.userAgentData.mobile) ||
     /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent));
+const prefersReducedMotion =
+  typeof window !== "undefined" &&
+  window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
 
 function setStatus(message) {
   if (motionStatusText) {
@@ -41,17 +63,45 @@ function setStatus(message) {
   }
 }
 
+function setShakeCtaVisible(visible) {
+  if (!shakeIcon) {
+    return;
+  }
+  shakeIcon.classList.toggle("hidden", !visible);
+}
+
+function markMotionPromptDismissed() {
+  motionPromptDismissed = true;
+}
+
 function getDiscoveredHorses() {
   try {
     const raw = window.localStorage.getItem(DISCOVERED_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     if (Array.isArray(parsed)) {
-      return parsed.filter((value) => typeof value === "string" && value.trim().length);
+      const seen = new Set();
+      return parsed
+        .filter((value) => typeof value === "string" && value.trim().length)
+        .filter((value) => HORSE_IDS.includes(value))
+        .filter((value) => {
+          if (seen.has(value)) {
+            return false;
+          }
+          seen.add(value);
+          return true;
+        });
     }
   } catch (error) {
     // ignore storage errors
   }
   return [];
+}
+
+function isSecretUnlocked(discovered = getDiscoveredHorses()) {
+  if (!SECRET_HORSE_ID) {
+    return false;
+  }
+  return NON_SECRET_IDS.every((id) => discovered.includes(id));
 }
 
 function showDrawButton() {
@@ -63,7 +113,16 @@ function hideDrawButton() {
 }
 
 function chooseRandomHorse() {
-  const pool = HORSES.filter((horse) => !horse.secret);
+  const discovered = getDiscoveredHorses();
+  if (SECRET_HORSE_ID && isSecretUnlocked(discovered) && !discovered.includes(SECRET_HORSE_ID)) {
+    const secret = HORSES.find((horse) => horse.id === SECRET_HORSE_ID);
+    if (secret) {
+      return secret;
+    }
+  }
+  const pool = isSecretUnlocked(discovered)
+    ? HORSES
+    : HORSES.filter((horse) => !horse.secret);
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -86,12 +145,13 @@ function triggerDraw() {
 }
 
 function handleMotion(event) {
-  if (!armed) {
-    return;
-  }
   motionSeen = true;
   const acc = event.accelerationIncludingGravity;
   if (!acc) {
+    return;
+  }
+  updateHorseGravity(acc);
+  if (!armed) {
     return;
   }
   const x = acc.x || 0;
@@ -105,6 +165,54 @@ function handleMotion(event) {
   }
 }
 
+function updateHorseGravity(acc) {
+  if (!horseGravityLayer || prefersReducedMotion) {
+    return;
+  }
+  const x = acc.x || 0;
+  const y = acc.y || 0;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return;
+  }
+  let angleDeg = (Math.atan2(x, y) * 180) / Math.PI;
+  if (!Number.isFinite(angleDeg)) {
+    return;
+  }
+  if (angleDeg > 90) {
+    angleDeg -= 180;
+  } else if (angleDeg < -90) {
+    angleDeg += 180;
+  }
+  angleDeg = clamp(angleDeg, -HORSE_GRAVITY_MAX_ANGLE, HORSE_GRAVITY_MAX_ANGLE);
+  gravityTarget = angleDeg;
+  scheduleGravityFrame();
+}
+
+function scheduleGravityFrame() {
+  if (gravityRaf) {
+    return;
+  }
+  gravityRaf = window.requestAnimationFrame(() => {
+    gravityRaf = null;
+    const delta = gravityTarget - gravityCurrent;
+    gravityCurrent += delta * HORSE_GRAVITY_SMOOTHING;
+    if (Math.abs(delta) < 0.08) {
+      gravityCurrent = gravityTarget;
+    }
+    setHorseGravityAngle(gravityCurrent);
+    if (Math.abs(gravityTarget - gravityCurrent) >= 0.08) {
+      scheduleGravityFrame();
+    }
+  });
+}
+
+function setHorseGravityAngle(angle) {
+  if (!horseGravityLayer) {
+    return;
+  }
+  horseGravityLayer.style.setProperty(HORSE_GRAVITY_CSS_VAR, `${angle.toFixed(2)}deg`);
+}
+
 function startMotion() {
   if (motionEnabled) {
     return;
@@ -115,10 +223,11 @@ function startMotion() {
   setStatus("");
   hideDrawButton();
   hideMotionModal();
+  setShakeCtaVisible(true);
 
   if (needsPermission) {
     window.setTimeout(() => {
-      if (!motionSeen) {
+      if (!motionSeen && !motionPromptDismissed) {
         setStatus("Enable motion access to use shake.");
         showDrawButton();
         showMotionModal();
@@ -128,6 +237,8 @@ function startMotion() {
 }
 
 async function requestMotionPermission() {
+  markMotionPromptDismissed();
+  hideMotionModal();
   if (!needsPermission) {
     setMotionGranted();
     startMotion();
@@ -142,12 +253,12 @@ async function requestMotionPermission() {
     }
     setStatus("Motion access denied.");
     showDrawButton();
+    setShakeCtaVisible(false);
   } catch (error) {
     setStatus("Motion access unavailable.");
     showDrawButton();
+    setShakeCtaVisible(false);
   }
-
-  hideMotionModal();
 }
 
 function setupMotionUI() {
@@ -155,6 +266,7 @@ function setupMotionUI() {
     setStatus("");
     showDrawButton();
     hideMotionModal();
+    setShakeCtaVisible(false);
     return;
   }
 
@@ -171,6 +283,7 @@ function setupMotionUI() {
   setStatus("Enable motion access to use shake.");
   showDrawButton();
   showMotionModal();
+  setShakeCtaVisible(false);
 }
 
 function isMotionGranted() {
@@ -337,6 +450,38 @@ function seedFlowers() {
   }
 }
 
+function scheduleFlowerSeed() {
+  if (flowersLoaded) {
+    return;
+  }
+  const container = document.querySelector(".hero-tree-flowers");
+  if (!container) {
+    return;
+  }
+
+  if (!flowerResizeObserver && "ResizeObserver" in window) {
+    flowerResizeObserver = new ResizeObserver(() => {
+      if (!flowersLoaded) {
+        flowerSeedRetries = 0;
+        scheduleFlowerSeed();
+      }
+    });
+    flowerResizeObserver.observe(container);
+  }
+
+  const { width, height } = container.getBoundingClientRect();
+  if (!width || !height) {
+    if (flowerSeedRetries < 10) {
+      flowerSeedRetries += 1;
+      window.setTimeout(scheduleFlowerSeed, 120);
+    }
+    return;
+  }
+
+  seedFlowers();
+  startFlowerFall();
+}
+
 function startFlowerFall() {
   if (flowerFallTimer) {
     return;
@@ -369,9 +514,9 @@ function startFlowerFall() {
   }, FLOWER_FALL_INTERVAL);
 }
 
-function createHorseIcon(x, y) {
+function createHorseIcon(x, y, { isSecret = false } = {}) {
   const icon = document.createElement("span");
-  icon.className = "tree-horse";
+  icon.className = `tree-horse${isSecret ? " tree-horse--secret" : ""}`;
   icon.style.left = `${x}px`;
   icon.style.top = `${y}px`;
   const swayAngle = (Math.random() * 6 + 8).toFixed(2);
@@ -379,7 +524,7 @@ function createHorseIcon(x, y) {
   icon.style.setProperty("--horse-sway-angle", `${swayAngle}deg`);
   icon.style.setProperty("--horse-fade-delay", `${fadeDelay}s`);
   icon.innerHTML =
-    '<span class="tree-horse-inner"><svg width="48" height="42" viewBox="0 0 48 42" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M47.3185 29.4506C47.0708 24.8723 47.437 16.7848 41.5063 16.0778C43.9129 13.3326 45.6802 11.2011 46.1734 7.12453C46.6306 3.33579 45.9257 0 45.9257 0H30.9488C32.6801 2.2542 35.1184 8.55748 33.0315 12.0562C31.6748 14.3274 28.4448 14.4882 27.4162 10.4794C24.9271 0.764098 15.5485 0 7.51177 0H0L1.03501 18.5437L4.95282 18.5902L9.00609 16.3128C9.00609 19.2125 6.21642 22.252 1.0329 22.252L0 42H8.87697C11.5269 42 13.6774 39.8516 13.6774 37.1995V36.5878C15.9231 38.7108 19.4472 40.0591 24 40.0591C28.5528 40.0591 32.0494 38.7108 34.3057 36.5836V37.1995C34.3057 39.8495 36.454 42 39.1061 42H48L47.3206 29.4506H47.3185Z" fill="#D50B0B"/></svg></span>';
+    '<span class="tree-horse-inner"><svg width="48" height="42" viewBox="0 0 48 42" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M47.3185 29.4506C47.0708 24.8723 47.437 16.7848 41.5063 16.0778C43.9129 13.3326 45.6802 11.2011 46.1734 7.12453C46.6306 3.33579 45.9257 0 45.9257 0H30.9488C32.6801 2.2542 35.1184 8.55748 33.0315 12.0562C31.6748 14.3274 28.4448 14.4882 27.4162 10.4794C24.9271 0.764098 15.5485 0 7.51177 0H0L1.03501 18.5437L4.95282 18.5902L9.00609 16.3128C9.00609 19.2125 6.21642 22.252 1.0329 22.252L0 42H8.87697C11.5269 42 13.6774 39.8516 13.6774 37.1995V36.5878C15.9231 38.7108 19.4472 40.0591 24 40.0591C28.5528 40.0591 32.0494 38.7108 34.3057 36.5836V37.1995C34.3057 39.8495 36.454 42 39.1061 42H48L47.3206 29.4506H47.3185Z" fill="currentColor"/></svg></span>';
   return icon;
 }
 
@@ -392,7 +537,11 @@ function seedHorseIcons() {
     return;
   }
   const discovered = getDiscoveredHorses();
-  if (!discovered.length) {
+  const secretUnlocked = isSecretUnlocked(discovered);
+  const visibleIds = discovered.filter(
+    (id) => id !== SECRET_HORSE_ID || secretUnlocked
+  );
+  if (!visibleIds.length) {
     return;
   }
   horsesLoaded = true;
@@ -406,11 +555,11 @@ function seedHorseIcons() {
   const size = 48;
   const maxHeight = height * 0.75;
   const minGap = size * 1.2;
-  const maxTries = discovered.length * 25;
+  const maxTries = visibleIds.length * 25;
   const placed = [];
   let tries = 0;
 
-  while (placed.length < discovered.length && tries < maxTries) {
+  while (placed.length < visibleIds.length && tries < maxTries) {
     tries += 1;
     const x = size / 2 + Math.random() * (width - size);
     const y = size / 2 + Math.random() * (maxHeight - size);
@@ -421,14 +570,19 @@ function seedHorseIcons() {
     placed.push({ x, y });
   }
 
-  while (placed.length < discovered.length) {
+  while (placed.length < visibleIds.length) {
     const x = size / 2 + Math.random() * (width - size);
     const y = size / 2 + Math.random() * (maxHeight - size);
     placed.push({ x, y });
   }
 
-  placed.forEach((point) => {
-    container.appendChild(createHorseIcon(point.x, point.y));
+  placed.forEach((point, index) => {
+    const id = visibleIds[index];
+    container.appendChild(
+      createHorseIcon(point.x, point.y, {
+        isSecret: id === SECRET_HORSE_ID
+      })
+    );
   });
 
   startHorseDangles(container);
@@ -440,8 +594,7 @@ function setupTreeFlowers() {
     return;
   }
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    seedFlowers();
-    startFlowerFall();
+    scheduleFlowerSeed();
     return;
   }
 
@@ -450,24 +603,21 @@ function setupTreeFlowers() {
     style.animationName && style.animationName !== "none" && parseFloat(style.animationDuration) > 0;
 
   if (!hasAnimation) {
-    seedFlowers();
-    startFlowerFall();
+    scheduleFlowerSeed();
     return;
   }
 
   wrap.addEventListener(
     "animationend",
     () => {
-      seedFlowers();
-      startFlowerFall();
+      scheduleFlowerSeed();
     },
     { once: true }
   );
   const durationMs = parseFloat(style.animationDuration) * 1000;
   if (Number.isFinite(durationMs) && durationMs > 0) {
     setTimeout(() => {
-      seedFlowers();
-      startFlowerFall();
+      scheduleFlowerSeed();
     }, durationMs + 50);
   }
 }
@@ -476,6 +626,11 @@ function setupTreeHorseIcons() {
   const wrap = document.querySelector(".hero-tree-wrap");
   if (!wrap) {
     return;
+  }
+  const layer = document.querySelector(".hero-tree-horses");
+  if (layer) {
+    horseGravityLayer = layer;
+    setHorseGravityAngle(0);
   }
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     seedHorseIcons();
@@ -523,14 +678,42 @@ function startHorseDangles(container) {
   }, HORSE_DANGLE_INTERVAL);
 }
 
+function setupPagePreloader() {
+  const preloader = document.getElementById("pagePreloader");
+  if (!preloader) {
+    return;
+  }
+  document.body.classList.add("is-preloading");
+  const hidePreloader = () => {
+    preloader.classList.add("is-hidden");
+    document.body.classList.remove("is-preloading");
+    window.setTimeout(() => {
+      preloader.remove();
+    }, 500);
+  };
+
+  if (document.readyState === "complete") {
+    window.setTimeout(hidePreloader, 0);
+    return;
+  }
+  window.addEventListener("load", hidePreloader, { once: true });
+}
+
 enableMotionButton?.addEventListener("click", requestMotionPermission);
-closeMotionButton?.addEventListener("click", hideMotionModal);
+closeMotionButton?.addEventListener("click", () => {
+  markMotionPromptDismissed();
+  hideMotionModal();
+  showDrawButton();
+  setShakeCtaVisible(false);
+});
 motionPrompt?.addEventListener("click", (event) => {
   const target = event.target;
   if (target && target.matches("[data-close=\"true\"]")) {
+    markMotionPromptDismissed();
     setStatus("");
     showDrawButton();
     hideMotionModal();
+    setShakeCtaVisible(false);
   }
 });
 
@@ -541,3 +724,11 @@ drawFortuneButton?.addEventListener("click", () => {
 setupTreeFlowers();
 setupTreeHorseIcons();
 setupMotionUI();
+setupPagePreloader();
+
+window.addEventListener("resize", () => {
+  if (!flowersLoaded) {
+    flowerSeedRetries = 0;
+    scheduleFlowerSeed();
+  }
+});

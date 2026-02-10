@@ -37,6 +37,72 @@ body {
   z-index: 1;
 }
 
+body.is-preloading {
+  overflow: hidden;
+}
+
+.page-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: block;
+  background: var(--horse-bg-solid, var(--bg1));
+  opacity: 1;
+  transition: opacity 0.45s ease;
+}
+
+.page-preloader.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.preloader-track {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.preloader-footprint,
+.preloader-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+.preloader-footprint {
+  animation: preloader-footprint 0.6s ease forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+.preloader-center {
+  animation: preloader-center 0.6s ease forwards;
+  animation-delay: var(--delay, 0.75s);
+}
+
+@keyframes preloader-footprint {
+  from {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--offset, 0px) + 24px), -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--offset, 0px)), -50%);
+  }
+}
+
+@keyframes preloader-center {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -405,9 +471,14 @@ a {
   width: 48px;
   height: 42px;
   opacity: 0;
+  color: var(--colors-primary-red);
   transform: translate(-50%, -50%) scale(0.94);
   animation: horse-fade 0.6s ease forwards var(--horse-fade-delay, 0s);
   pointer-events: auto;
+}
+
+.tree-horse--secret {
+  color: var(--colors-primary-blue);
 }
 
 .tree-horse-inner {
@@ -415,6 +486,7 @@ a {
   width: 100%;
   height: 100%;
   transform-origin: 50% 10%;
+  transform: rotate(var(--horse-gravity-rotation, 0deg));
   animation: none;
   will-change: transform;
 }
@@ -448,28 +520,55 @@ a {
 
 @keyframes horse-dangle {
   0% {
-    transform: rotate(0deg);
+    transform: rotate(var(--horse-gravity-rotation, 0deg));
   }
   12% {
-    transform: rotate(var(--horse-sway-angle, -8deg));
+    transform: rotate(
+      calc(
+        var(--horse-gravity-rotation, 0deg) + var(--horse-sway-angle, -8deg)
+      )
+    );
   }
   24% {
-    transform: rotate(calc(var(--horse-sway-angle, -8deg) * -1));
+    transform: rotate(
+      calc(
+        var(--horse-gravity-rotation, 0deg) +
+          (var(--horse-sway-angle, -8deg) * -1)
+      )
+    );
   }
   36% {
-    transform: rotate(var(--horse-sway-angle, -8deg));
+    transform: rotate(
+      calc(
+        var(--horse-gravity-rotation, 0deg) + var(--horse-sway-angle, -8deg)
+      )
+    );
   }
   48% {
-    transform: rotate(calc(var(--horse-sway-angle, -8deg) * -1));
+    transform: rotate(
+      calc(
+        var(--horse-gravity-rotation, 0deg) +
+          (var(--horse-sway-angle, -8deg) * -1)
+      )
+    );
   }
   60% {
-    transform: rotate(var(--horse-sway-angle, -8deg));
+    transform: rotate(
+      calc(
+        var(--horse-gravity-rotation, 0deg) + var(--horse-sway-angle, -8deg)
+      )
+    );
   }
   72% {
-    transform: rotate(calc(var(--horse-sway-angle, -8deg) * -1));
+    transform: rotate(
+      calc(
+        var(--horse-gravity-rotation, 0deg) +
+          (var(--horse-sway-angle, -8deg) * -1)
+      )
+    );
   }
   100% {
-    transform: rotate(0deg);
+    transform: rotate(var(--horse-gravity-rotation, 0deg));
   }
 }
 
