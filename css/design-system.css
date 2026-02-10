@@ -37,8 +37,6 @@
   --space-40: clamp(24px, calc(40 * var(--vw-unit)), 60px);
   --space-48: clamp(28px, calc(48 * var(--vw-unit)), 72px);
   --space-60: clamp(36px, calc(60 * var(--vw-unit)), 90px);
-  --spacing-00: 0px;
-  --spacing-10: 40px;
 
   /* Sizes */
   --size-72: clamp(54px, calc(72 * var(--vw-unit)), 96px);

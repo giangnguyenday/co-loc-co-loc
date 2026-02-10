@@ -1,4 +1,5 @@
 import { HORSES } from "./horses.js";
+import { initPagePreloader } from "./preloader.js";
 
 const SHAKE_THRESHOLD = 24;
 const COOLDOWN_MS = 1200;
@@ -8,9 +9,9 @@ const FLOWER_TOTAL = 15;
 const FLOWER_FALL_INTERVAL = 12000;
 const FLOWER_FALL_DURATION = 4000;
 const FLOWER_FALL_BOTTOM_RATIO = 0.96;
-const HORSE_DANGLE_INTERVAL = 4000; // average interval between horse dangles
-const HORSE_DANGLE_DURATION_MIN = 6000; // min duration of a horse dangle
-const HORSE_DANGLE_DURATION_MAX = 1200; // max duration of a horse dangle
+const HORSE_DANGLE_INTERVAL = 4000; // interval between horse dangles
+const HORSE_DANGLE_DURATION_MIN = 1200; // min duration of a horse dangle
+const HORSE_DANGLE_DURATION_MAX = 6000; // max duration of a horse dangle
 const HORSE_GRAVITY_MAX_ANGLE = 90;
 const HORSE_GRAVITY_SMOOTHING = 0.12;
 const HORSE_GRAVITY_CSS_VAR = "--horse-gravity-rotation";
@@ -18,12 +19,14 @@ const HORSE_IDS = HORSES.map((horse) => horse.id);
 const SECRET_HORSE_ID = HORSES.find((horse) => horse.secret)?.id || null;
 const NON_SECRET_IDS = HORSES.filter((horse) => !horse.secret).map((horse) => horse.id);
 
-const enableMotionButton = document.getElementById("enableMotionButton");
-const drawFortuneButton = document.getElementById("drawFortuneBtn");
-const motionStatusText = document.getElementById("motionStatusText");
-const motionPrompt = document.getElementById("motionPrompt");
-const closeMotionButton = document.getElementById("closeMotionButton");
-const shakeIcon = document.querySelector(".shake-icon");
+const dom = {
+  enableMotionButton: document.getElementById("enableMotionButton"),
+  drawFortuneButton: document.getElementById("drawFortuneBtn"),
+  motionStatusText: document.getElementById("motionStatusText"),
+  motionPrompt: document.getElementById("motionPrompt"),
+  closeMotionButton: document.getElementById("closeMotionButton"),
+  shakeIcon: document.querySelector(".shake-icon")
+};
 
 let lastTrigger = 0;
 let armed = true;
@@ -58,16 +61,16 @@ function clamp(value, min, max) {
 }
 
 function setStatus(message) {
-  if (motionStatusText) {
-    motionStatusText.textContent = message;
+  if (dom.motionStatusText) {
+    dom.motionStatusText.textContent = message;
   }
 }
 
 function setShakeCtaVisible(visible) {
-  if (!shakeIcon) {
+  if (!dom.shakeIcon) {
     return;
   }
-  shakeIcon.classList.toggle("hidden", !visible);
+  dom.shakeIcon.classList.toggle("hidden", !visible);
 }
 
 function markMotionPromptDismissed() {
@@ -105,11 +108,11 @@ function isSecretUnlocked(discovered = getDiscoveredHorses()) {
 }
 
 function showDrawButton() {
-  drawFortuneButton?.classList.remove("hidden");
+  dom.drawFortuneButton?.classList.remove("hidden");
 }
 
 function hideDrawButton() {
-  drawFortuneButton?.classList.add("hidden");
+  dom.drawFortuneButton?.classList.add("hidden");
 }
 
 function chooseRandomHorse() {
@@ -137,8 +140,8 @@ function triggerDraw() {
     return;
   }
   armed = false;
-  if (drawFortuneButton) {
-    drawFortuneButton.disabled = true;
+  if (dom.drawFortuneButton) {
+    dom.drawFortuneButton.disabled = true;
   }
   const outcome = chooseRandomHorse();
   goToHorse(outcome);
@@ -303,11 +306,11 @@ function setMotionGranted() {
 }
 
 function showMotionModal() {
-  motionPrompt?.classList.remove("hidden");
+  dom.motionPrompt?.classList.remove("hidden");
 }
 
 function hideMotionModal() {
-  motionPrompt?.classList.add("hidden");
+  dom.motionPrompt?.classList.add("hidden");
 }
 
 function createFlowerElement({ svg, size, spin }, x, y, containerHeight) {
@@ -678,35 +681,15 @@ function startHorseDangles(container) {
   }, HORSE_DANGLE_INTERVAL);
 }
 
-function setupPagePreloader() {
-  const preloader = document.getElementById("pagePreloader");
-  if (!preloader) {
-    return;
-  }
-  document.body.classList.add("is-preloading");
-  const hidePreloader = () => {
-    preloader.classList.add("is-hidden");
-    document.body.classList.remove("is-preloading");
-    window.setTimeout(() => {
-      preloader.remove();
-    }, 500);
-  };
 
-  if (document.readyState === "complete") {
-    window.setTimeout(hidePreloader, 0);
-    return;
-  }
-  window.addEventListener("load", hidePreloader, { once: true });
-}
-
-enableMotionButton?.addEventListener("click", requestMotionPermission);
-closeMotionButton?.addEventListener("click", () => {
+dom.enableMotionButton?.addEventListener("click", requestMotionPermission);
+dom.closeMotionButton?.addEventListener("click", () => {
   markMotionPromptDismissed();
   hideMotionModal();
   showDrawButton();
   setShakeCtaVisible(false);
 });
-motionPrompt?.addEventListener("click", (event) => {
+dom.motionPrompt?.addEventListener("click", (event) => {
   const target = event.target;
   if (target && target.matches("[data-close=\"true\"]")) {
     markMotionPromptDismissed();
@@ -717,14 +700,14 @@ motionPrompt?.addEventListener("click", (event) => {
   }
 });
 
-drawFortuneButton?.addEventListener("click", () => {
+dom.drawFortuneButton?.addEventListener("click", () => {
   triggerDraw();
 });
 
 setupTreeFlowers();
 setupTreeHorseIcons();
 setupMotionUI();
-setupPagePreloader();
+initPagePreloader();
 
 window.addEventListener("resize", () => {
   if (!flowersLoaded) {

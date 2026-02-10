@@ -1,10 +1,9 @@
 import { HORSES } from "./horses.js";
 import { renderOutcome } from "./core.js";
+import { buildPreloaderFootprints, initPagePreloader } from "./preloader.js";
 
-const errorBox = document.getElementById("errorBox");
 const fortuneCarousel = document.getElementById("fortuneCarousel");
 const fortuneDots = Array.from(document.querySelectorAll(".fortune-dot"));
-
 function setActiveDot(index) {
   if (!fortuneDots.length) {
     return;
@@ -62,15 +61,25 @@ if (fortuneCarousel && fortuneDots.length) {
   });
 }
 
+buildPreloaderFootprints();
+window.addEventListener("resize", buildPreloaderFootprints);
+
 const params = new URLSearchParams(window.location.search);
 const horseId = params.get("horse") || params.get("id");
 
-function showError(message) {
-  if (!errorBox) {
-    return;
+function showMissingHorseId(message = "Missing horse ID.") {
+  const preloader = document.getElementById("pagePreloader");
+  if (preloader) {
+    preloader.remove();
   }
-  errorBox.innerHTML = `${message} <a class="text-link" href="index.html">Back to shake</a>`;
-  errorBox.classList.remove("hidden");
+  document.body.classList.remove("is-preloading");
+  document.body.classList.add("is-horse-ready");
+  document.body.textContent = message;
+  document.body.style.cssText =
+    "margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#ffffff;color:var(--colors-primary-red);font-family:sans-serif;";
+  window.requestAnimationFrame(() => {
+    window.location.replace("index.html");
+  });
 }
 
 function recordDiscovery(horseId) {
@@ -90,37 +99,46 @@ function recordDiscovery(horseId) {
   }
 }
 
+const preloader = initPagePreloader({ autoHide: false });
+let contentReady = false;
+let modelReady = false;
+
+function maybeReveal() {
+  if (!contentReady || !modelReady) {
+    return;
+  }
+  if (document.body.classList.contains("is-horse-ready")) {
+    return;
+  }
+  document.body.classList.add("is-horse-ready");
+  document.body.classList.remove("is-preloading");
+  preloader.hide();
+}
+
 if (!horseId) {
-  showError("Missing horse id.");
+  showMissingHorseId("Missing horse ID.");
 } else {
   const outcome = HORSES.find((horse) => horse.id === horseId);
   if (!outcome) {
-    showError("Horse not found.");
+    showMissingHorseId("Invalid horse ID.");
   } else {
     recordDiscovery(outcome.id);
     renderOutcome(outcome);
+    contentReady = true;
+    maybeReveal();
+
+    const modelState = window.__horse3dLoadState;
+    if (modelState === "rendered" || modelState === "failed") {
+      modelReady = true;
+      maybeReveal();
+    } else {
+      const markModelReady = () => {
+        modelReady = true;
+        maybeReveal();
+      };
+      window.addEventListener("horse3d:rendered", markModelReady, { once: true });
+      window.addEventListener("horse3d:failed", markModelReady, { once: true });
+      window.setTimeout(markModelReady, 3500);
+    }
   }
 }
-
-function setupPagePreloader() {
-  const preloader = document.getElementById("pagePreloader");
-  if (!preloader) {
-    return;
-  }
-  document.body.classList.add("is-preloading");
-  const hidePreloader = () => {
-    preloader.classList.add("is-hidden");
-    document.body.classList.remove("is-preloading");
-    window.setTimeout(() => {
-      preloader.remove();
-    }, 500);
-  };
-
-  if (document.readyState === "complete") {
-    window.setTimeout(hidePreloader, 0);
-    return;
-  }
-  window.addEventListener("load", hidePreloader, { once: true });
-}
-
-setupPagePreloader();
