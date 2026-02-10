@@ -1,6 +1,7 @@
 import { HORSES } from "./horses.js";
 import { initPagePreloader } from "./preloader.js";
 
+const REPEATABLE = true;
 const SHAKE_THRESHOLD = 24;
 const COOLDOWN_MS = 1200;
 const MOTION_KEY = "tethorse.motionGranted";
@@ -123,10 +124,16 @@ function chooseRandomHorse() {
       return secret;
     }
   }
-  const pool = isSecretUnlocked(discovered)
+  const basePool = isSecretUnlocked(discovered)
     ? HORSES
     : HORSES.filter((horse) => !horse.secret);
-  return pool[Math.floor(Math.random() * pool.length)];
+  if (!REPEATABLE) {
+    const remaining = basePool.filter((horse) => !discovered.includes(horse.id));
+    if (remaining.length) {
+      return remaining[Math.floor(Math.random() * remaining.length)];
+    }
+  }
+  return basePool[Math.floor(Math.random() * basePool.length)];
 }
 
 function goToHorse(outcome) {
