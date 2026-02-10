@@ -45,7 +45,7 @@ export const HORSES = [
     codeName: "Nhân Ái",
     fortune: "Love your neighbor as yourself.",
     description:
-      "As the horse protects those small and weak, may kindness always be your guide. Let it remind you to care for others and journey forward with a heart full of love.",
+      "As the horse protects those who are small and weak, may kindness always be your guide. Let it remind you to care for others and journey forward with a heart full of love.",
     designer: "Nhân",
     theme: {
       bg: "var(--colors-primary-red)",
