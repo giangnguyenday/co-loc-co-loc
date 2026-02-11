@@ -169,7 +169,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js" defer></script>
-    <script src="render.js" defer></script>
+    <script src="js/render.js" defer></script>
     <script>
       window.addEventListener("DOMContentLoaded", () => {
         const HORSE_MAP = {
@@ -221,9 +221,9 @@
 
         const applySettingsFromFile = async () => {
           try {
-            const response = await fetch("settings.json", { cache: "no-store" });
+            const response = await fetch("js/settings.json", { cache: "no-store" });
             if (!response.ok) {
-              throw new Error(`settings.json ${response.status}`);
+              throw new Error(`js/settings.json ${response.status}`);
             }
             const data = await response.json();
             const settings = data.settings ?? data;
@@ -233,7 +233,7 @@
               return;
             }
           } catch (error) {
-            console.warn("Failed to load settings.json", error);
+            console.warn("Failed to load js/settings.json", error);
           }
 
           loadDesiredModel();
