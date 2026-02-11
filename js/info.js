@@ -1,5 +1,7 @@
 // Bind the horizontal range slider to the .intro_animation horizontal scroll
 const AUTO_SLIDE_ENABLED = false;
+const SNAP_ENABLED = false;
+const WHEEL_SCROLL_ENABLED = true;
 
 document.addEventListener('DOMContentLoaded', function () {
 	const container = document.querySelector('.intro_animation');
@@ -174,6 +176,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	window.requestAnimationFrame(positionSpreadText);
 	updateBrandVisibility();
 	updateSwipeTextVisibility();
+	if (!SNAP_ENABLED) {
+		container.style.scrollSnapType = 'none';
+	}
+	if (WHEEL_SCROLL_ENABLED) {
+		container.classList.add('wheel-scroll');
+	}
 	if (document.fonts && document.fonts.ready) {
 		document.fonts.ready.then(positionSpreadText);
 	}
@@ -205,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				slider.value = Math.round(max - container.scrollLeft);
 			});
 		}
-		if (!isUserDragging && !isAutoScrolling && !suppressSnap) {
+		if (SNAP_ENABLED && !isUserDragging && !isAutoScrolling && !suppressSnap) {
 			window.clearTimeout(scrollEndTimer);
 			scrollEndTimer = window.setTimeout(() => {
 				if (snapLocked) {
@@ -247,6 +255,20 @@ document.addEventListener('DOMContentLoaded', function () {
 	['pointerdown', 'touchstart', 'wheel'].forEach((eventName) => {
 		container.addEventListener(eventName, beginUserScroll, { passive: true });
 	});
+
+	function handleWheelScroll(event) {
+		if (!WHEEL_SCROLL_ENABLED) return;
+		if (!pageBody || !pageBody.classList.contains('page--info')) return;
+		const max = Math.max(0, container.scrollWidth - container.clientWidth);
+		if (max <= 0) return;
+		const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+		if (!delta) return;
+		container.scrollBy({ left: delta, behavior: 'auto' });
+		event.preventDefault();
+		registerInteraction();
+	}
+
+	window.addEventListener('wheel', handleWheelScroll, { passive: false, capture: true });
 
 	// update max on resize or content change
 	window.addEventListener('resize', function () {

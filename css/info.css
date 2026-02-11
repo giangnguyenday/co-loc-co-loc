@@ -169,6 +169,10 @@ body.page--info.start-visible .button--start {
     gap: 0;
 }
 
+.intro_animation.wheel-scroll {
+    scroll-behavior: auto;
+}
+
 .intro_animation > div {
     flex: 0 0 100vw;
     min-width: 100vw;
