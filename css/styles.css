@@ -948,6 +948,21 @@ canvas {
   padding: var(--space-8) var(--space-12);
 }
 
+.btn.share-button {
+  width: var(--space-36);
+  height: var(--space-36);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.btn.share-button svg {
+  width: 18px;
+  height: auto;
+  display: block;
+}
+
 .btn.fortune-button:hover:not(:disabled),
 .btn.fortune-button:focus-visible:not(:disabled) {
   background: currentColor;
@@ -1015,6 +1030,19 @@ canvas {
   .page--horse .btn.fortune-button:focus-visible:not(:disabled) {
     background: var(--colors-white);
     color: var(--horse-text, var(--text));
+  }
+
+  .page--horse .fortune-actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-16);
+    padding-top: var(--space-8);
+  }
+
+  .page--horse .fortune-actions .btn {
+    flex: 0 0 auto;
   }
 
 
@@ -1175,10 +1203,13 @@ canvas {
     gap: var(--space-12);
   }
 
-  .horse-panel .fortune-button {
+  .horse-panel .fortune-actions {
     position: absolute;
     right: var(--space-32);
     bottom: var(--space-16);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-12);
   }
 
   .page--horse .btn.fortune-button:hover:not(:disabled),

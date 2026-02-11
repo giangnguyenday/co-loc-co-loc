@@ -168,9 +168,14 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({
   antialias: CONFIG.renderer.antialias,
   alpha: SETTINGS.backgroundTransparent,
+  preserveDrawingBuffer: true,
 });
 const canvasMount = document.getElementById("horse3dMount");
 const rendererParent = canvasMount || document.body;
+window.__horse3dCanvas = renderer.domElement;
+window.__horse3dCapture = () => {
+  renderer.render(scene, camera);
+};
 
 function getRendererSize() {
   if (canvasMount) {
@@ -1028,6 +1033,16 @@ function replaceModel(mesh) {
   });
   scene.add(currentModel);
   frameObject(currentModel);
+  markHorse3dState("rendered");
+}
+
+function markHorse3dState(state) {
+  if (window.__horse3dLoadState === state) {
+    return;
+  }
+  window.__horse3dLoadState = state;
+  const eventName = state === "failed" ? "horse3d:failed" : "horse3d:rendered";
+  window.dispatchEvent(new Event(eventName));
 }
 
 function disposeObject(object) {
@@ -1087,6 +1102,7 @@ async function loadModel(modelName) {
     replaceModel(mesh);
   } catch (error) {
     console.error(`Failed to load model: ${modelName}`, error);
+    markHorse3dState("failed");
   }
 }
 

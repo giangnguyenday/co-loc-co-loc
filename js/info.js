@@ -3,12 +3,24 @@ const AUTO_SLIDE_ENABLED = false;
 const SNAP_ENABLED = false;
 const WHEEL_SCROLL_ENABLED = true;
 
-document.addEventListener('DOMContentLoaded', function () {
-	const container = document.querySelector('.intro_animation');
-	const slider = document.getElementById('horizontalSlider');
-	const swipeNav = document.querySelector('nav.swipe');
-	const swipeText = document.querySelector('.swipe-text');
-	if (!container || !slider) return;
+	document.addEventListener('DOMContentLoaded', function () {
+		const container = document.querySelector('.intro_animation');
+		const slider = document.getElementById('horizontalSlider');
+		const swipeNav = document.querySelector('nav.swipe');
+		const swipeText = document.querySelector('.swipe-text');
+		const protectedMedia = document.querySelectorAll('.page--info img, .page--info svg');
+		protectedMedia.forEach((el) => el.setAttribute('draggable', 'false'));
+		document.addEventListener('dragstart', (event) => {
+			if (event.target.closest('.page--info img, .page--info svg')) {
+				event.preventDefault();
+			}
+		});
+		document.addEventListener('contextmenu', (event) => {
+			if (event.target.closest('.page--info img, .page--info svg')) {
+				event.preventDefault();
+			}
+		});
+		if (!container || !slider) return;
 
 	const spreadItems = Array.from(container.querySelectorAll('.spread-text'));
 	const frames = Array.from(container.children).filter((el) => el.nodeType === 1);
