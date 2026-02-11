@@ -1,6 +1,14 @@
 import { HORSES } from "./horses.js";
 import { initPagePreloader } from "./preloader.js";
 
+const t = (key, fallback) => {
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+  const i18n = window.i18n;
+  return i18n && typeof i18n.t === "function" ? i18n.t(key, fallback) : fallback;
+};
+
 const REPEATABLE = true;
 const SHAKE_THRESHOLD = 24;
 const COOLDOWN_MS = 1200;
@@ -17,7 +25,8 @@ const HORSE_GRAVITY_MAX_ANGLE = 90;
 const HORSE_GRAVITY_SMOOTHING = 0.12;
 const HORSE_GRAVITY_CSS_VAR = "--horse-gravity-rotation";
 const HORSE_IDS = HORSES.map((horse) => horse.id);
-const SECRET_HORSE_ID = HORSES.find((horse) => horse.secret)?.id || null;
+const secretHorse = HORSES.find((horse) => horse.secret);
+const SECRET_HORSE_ID = secretHorse ? secretHorse.id : null;
 const NON_SECRET_IDS = HORSES.filter((horse) => !horse.secret).map((horse) => horse.id);
 
 const dom = {
@@ -42,6 +51,7 @@ let gravityRaf = null;
 let gravityTarget = 0;
 let gravityCurrent = 0;
 let motionPromptDismissed = false;
+let statusKey = null;
 let flowerSeedRetries = 0;
 let flowerResizeObserver = null;
 
@@ -61,10 +71,18 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function setStatus(message) {
+function setStatus(message, key = null) {
   if (dom.motionStatusText) {
     dom.motionStatusText.textContent = message;
   }
+  statusKey = key;
+}
+
+if (typeof window !== "undefined" && window.i18n && typeof window.i18n.onChange === "function") {
+  window.i18n.onChange(() => {
+    if (!statusKey) return;
+    setStatus(t(statusKey, dom.motionStatusText ? dom.motionStatusText.textContent : ""), statusKey);
+  });
 }
 
 function setShakeCtaVisible(visible) {
@@ -109,11 +127,11 @@ function isSecretUnlocked(discovered = getDiscoveredHorses()) {
 }
 
 function showDrawButton() {
-  dom.drawFortuneButton?.classList.remove("hidden");
+  if (dom.drawFortuneButton) dom.drawFortuneButton.classList.remove("hidden");
 }
 
 function hideDrawButton() {
-  dom.drawFortuneButton?.classList.add("hidden");
+  if (dom.drawFortuneButton) dom.drawFortuneButton.classList.add("hidden");
 }
 
 function chooseRandomHorse() {
@@ -238,7 +256,10 @@ function startMotion() {
   if (needsPermission) {
     window.setTimeout(() => {
       if (!motionSeen && !motionPromptDismissed) {
-        setStatus("Enable motion access to use shake.");
+        setStatus(
+          t("status.enableMotion", "Enable motion access to use shake."),
+          "status.enableMotion"
+        );
         showDrawButton();
         showMotionModal();
       }
@@ -261,11 +282,14 @@ async function requestMotionPermission() {
       startMotion();
       return;
     }
-    setStatus("Motion access denied.");
+    setStatus(t("status.motionDenied", "Motion access denied."), "status.motionDenied");
     showDrawButton();
     setShakeCtaVisible(false);
   } catch (error) {
-    setStatus("Motion access unavailable.");
+    setStatus(
+      t("status.motionUnavailable", "Motion access unavailable."),
+      "status.motionUnavailable"
+    );
     showDrawButton();
     setShakeCtaVisible(false);
   }
@@ -290,7 +314,10 @@ function setupMotionUI() {
     return;
   }
 
-  setStatus("Enable motion access to use shake.");
+  setStatus(
+    t("status.enableMotion", "Enable motion access to use shake."),
+    "status.enableMotion"
+  );
   showDrawButton();
   showMotionModal();
   setShakeCtaVisible(false);
@@ -313,11 +340,11 @@ function setMotionGranted() {
 }
 
 function showMotionModal() {
-  dom.motionPrompt?.classList.remove("hidden");
+  if (dom.motionPrompt) dom.motionPrompt.classList.remove("hidden");
 }
 
 function hideMotionModal() {
-  dom.motionPrompt?.classList.add("hidden");
+  if (dom.motionPrompt) dom.motionPrompt.classList.add("hidden");
 }
 
 function createFlowerElement({ svg, size, spin }, x, y, containerHeight) {
@@ -689,14 +716,14 @@ function startHorseDangles(container) {
 }
 
 
-dom.enableMotionButton?.addEventListener("click", requestMotionPermission);
-dom.closeMotionButton?.addEventListener("click", () => {
+if (dom.enableMotionButton) dom.enableMotionButton.addEventListener("click", requestMotionPermission);
+if (dom.closeMotionButton) dom.closeMotionButton.addEventListener("click", () => {
   markMotionPromptDismissed();
   hideMotionModal();
   showDrawButton();
   setShakeCtaVisible(false);
 });
-dom.motionPrompt?.addEventListener("click", (event) => {
+if (dom.motionPrompt) dom.motionPrompt.addEventListener("click", (event) => {
   const target = event.target;
   if (target && target.matches("[data-close=\"true\"]")) {
     markMotionPromptDismissed();
@@ -707,7 +734,7 @@ dom.motionPrompt?.addEventListener("click", (event) => {
   }
 });
 
-dom.drawFortuneButton?.addEventListener("click", () => {
+if (dom.drawFortuneButton) dom.drawFortuneButton.addEventListener("click", () => {
   triggerDraw();
 });
 

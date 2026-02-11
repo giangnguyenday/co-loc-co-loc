@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Co Loc Co Loc</title>
+    <title data-i18n="title.index">Co Loc Co Loc</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -78,8 +78,15 @@
         </svg>
       </a>
       <nav class="nav">
-        <a class="nav-link nav-link--info" href="info.html">Information</a>
-        <a class="nav-link nav-link--lang" href="#" aria-label="Switch language to Vietnamese">VIE</a>
+        <a class="nav-link nav-link--info" href="info.html" data-i18n="nav.info">Information</a>
+        <a
+          id="langToggle"
+          class="nav-link nav-link--lang"
+          href="#"
+          aria-label="Switch language to Vietnamese"
+          data-i18n="nav.lang"
+          data-i18n-attr="aria-label:nav.langLabel"
+        >VIE</a>
       </nav>
     </header>
 
@@ -94,6 +101,7 @@
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             aria-label="Fortune tree"
+            data-i18n-attr="aria-label:aria.fortuneTree"
             role="img"
           >
           <path d="M20 668H140" stroke="#D50B0B" stroke-width="2" stroke-linecap="square" stroke-dasharray="0.01 8"/>
@@ -127,7 +135,7 @@
         </div>
         <div class="hero-cta">
           <div class="controls">
-            <button id="drawFortuneBtn" class="btn fortune-button heading-3 hidden">Draw your fortune</button>
+            <button id="drawFortuneBtn" class="btn fortune-button heading-3 hidden" data-i18n="cta.drawFortune">Draw your fortune</button>
           </div>
           <p id="motionStatusText" class="status" role="status" aria-live="polite"></p>
         </div>
@@ -157,18 +165,19 @@
     <div id="motionPrompt" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="motionPromptTitle">
       <div class="modal-backdrop" data-close="true"></div>
       <div class="modal-card">
-        <h2 id="motionPromptTitle" class="heading-2 modal-title">Enable Motion Access</h2>
-        <p class="body-text">
+        <h2 id="motionPromptTitle" class="heading-2 modal-title" data-i18n="motion.title">Enable Motion Access</h2>
+        <p class="body-text" data-i18n="motion.body">
           Motion access lets you shake the phone to draw your lucky horse. This
           is optional and can be enabled once.
         </p>
         <div class="modal-actions">
-          <button id="enableMotionButton" class="btn motion-enable heading-3">Enable Motion</button>
-          <button id="closeMotionButton" class="btn motion-cancel heading-3" data-close="true">Not now</button>
+          <button id="enableMotionButton" class="btn motion-enable heading-3" data-i18n="motion.enable">Enable Motion</button>
+          <button id="closeMotionButton" class="btn motion-cancel heading-3" data-close="true" data-i18n="motion.cancel">Not now</button>
         </div>
       </div>
     </div>
 
+    <script type="module" src="./js/i18n.js"></script>
     <script type="module" src="./js/index.js"></script>
   </body>
 </html>

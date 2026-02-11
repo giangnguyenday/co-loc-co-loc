@@ -67,14 +67,18 @@ window.addEventListener("resize", buildPreloaderFootprints);
 const params = new URLSearchParams(window.location.search);
 const horseId = params.get("horse") || params.get("id");
 
-function showMissingHorseId(message = "Missing horse ID.") {
+function showMissingHorseId(key = "error.missingHorseId", fallback = "Missing horse ID.") {
   const preloader = document.getElementById("pagePreloader");
   if (preloader) {
     preloader.remove();
   }
   document.body.classList.remove("is-preloading");
   document.body.classList.add("is-horse-ready");
-  document.body.textContent = message;
+  const localized =
+    typeof window !== "undefined" && window.i18n?.t
+      ? window.i18n.t(key, fallback)
+      : fallback;
+  document.body.textContent = localized;
   document.body.style.cssText =
     "margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#ffffff;color:var(--colors-primary-red);font-family:sans-serif;";
   window.requestAnimationFrame(() => {
@@ -116,11 +120,11 @@ function maybeReveal() {
 }
 
 if (!horseId) {
-  showMissingHorseId("Missing horse ID.");
+  showMissingHorseId("error.missingHorseId", "Missing horse ID.");
 } else {
   const outcome = HORSES.find((horse) => horse.id === horseId);
   if (!outcome) {
-    showMissingHorseId("Invalid horse ID.");
+    showMissingHorseId("error.invalidHorseId", "Invalid horse ID.");
   } else {
     recordDiscovery(outcome.id);
     renderOutcome(outcome);

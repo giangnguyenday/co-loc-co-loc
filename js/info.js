@@ -68,8 +68,8 @@ const WHEEL_SCROLL_ENABLED = true;
 		updateSwipeVisibility();
 	}
 
-	function positionSpreadText() {
-		if (!spreadItems.length) return;
+		function positionSpreadText() {
+			if (!spreadItems.length) return;
 		const containerRect = container.getBoundingClientRect();
 		const vw = window.innerWidth || container.clientWidth;
 		const vh = window.innerHeight || container.clientHeight;
@@ -99,6 +99,13 @@ const WHEEL_SCROLL_ENABLED = true;
 				minDist = dist;
 				closest = snapPoints[i];
 			}
+		}
+
+		if (typeof window !== "undefined" && window.i18n?.onChange) {
+			window.i18n.onChange(() => {
+				updateSliderMax();
+				positionSpreadText();
+			});
 		}
 		return closest;
 	}

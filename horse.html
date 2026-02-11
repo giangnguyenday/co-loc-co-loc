@@ -51,7 +51,7 @@
         window.addEventListener("pageshow", applyThemeColor);
       })();
     </script>
-    <title>Co Loc Co Loc - Your Fortune</title>
+    <title data-i18n="title.horse">Co Loc Co Loc - Your Fortune</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -98,8 +98,15 @@
         </svg>
       </a>
       <nav class="nav">
-        <a class="nav-link nav-link--info" href="info.html">Information</a>
-        <a class="nav-link nav-link--lang" href="#" aria-label="Switch language to Vietnamese">VIE</a>
+        <a class="nav-link nav-link--info" href="info.html" data-i18n="nav.info">Information</a>
+        <a
+          id="langToggle"
+          class="nav-link nav-link--lang"
+          href="#"
+          aria-label="Switch language to Vietnamese"
+          data-i18n="nav.lang"
+          data-i18n-attr="aria-label:nav.langLabel"
+        >VIE</a>
       </nav>
     </header>
 
@@ -123,6 +130,7 @@
               id="fortuneCarousel"
               role="region"
               aria-label="Fortune details"
+              data-i18n-attr="aria-label:aria.fortuneDetails"
             >
               <div class="fortune-track">
                 <div class="fortune-slide" data-slide="0">
@@ -148,6 +156,7 @@
                 class="fortune-dot is-active"
                 type="button"
                 aria-label="Fortune message"
+                data-i18n-attr="aria-label:aria.fortuneMessage"
                 aria-current="true"
                 data-slide="0"
               ></button>
@@ -155,13 +164,19 @@
                 class="fortune-dot"
                 type="button"
                 aria-label="Fortune description"
+                data-i18n-attr="aria-label:aria.fortuneDescription"
                 data-slide="1"
               ></button>
             </div>
           </div>
 
           <div class="fortune-actions">
-            <button class="btn fortune-button share-button" type="button" aria-label="Share">
+            <button
+              class="btn fortune-button share-button"
+              type="button"
+              aria-label="Share"
+              data-i18n-attr="aria-label:cta.share"
+            >
               <svg width="22" height="28" viewBox="0 0 22 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <g clip-path="url(#clip0_103_6)">
                   <path d="M9.62998 4.96V20.18H12.23V4.96L15.18 7.91L17.01 6.08L10.93 0L4.84998 6.08L6.67998 7.91L9.62998 4.96Z" fill="currentColor"/>
@@ -174,12 +189,13 @@
                 </defs>
               </svg>
             </button>
-            <a class="btn fortune-button heading-3" href="index.html">Draw more fortune</a>
+            <a class="btn fortune-button heading-3" href="index.html" data-i18n="cta.drawMore">Draw more fortune</a>
           </div>
         </div>
       </section>
     </main>
 
+    <script type="module" src="./js/i18n.js"></script>
     <script type="module" src="./js/horse.js"></script>
     <script type="module" src="./js/share.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>

@@ -9,10 +9,42 @@ function getDomRefs() {
   };
 }
 
+let currentOutcome = null;
+
+function getLocale() {
+  if (typeof window !== "undefined" && window.i18n?.getLocale) {
+    return window.i18n.getLocale();
+  }
+  return "en";
+}
+
+function getLocalizedValue(value) {
+  if (!value || typeof value !== "object") {
+    return value ?? "";
+  }
+  const locale = getLocale();
+  return value[locale] ?? value.en ?? value.vi ?? "";
+}
+
+function getDesignerLabel() {
+  if (typeof window !== "undefined" && window.i18n?.t) {
+    return window.i18n.t("label.designer", "DESIGNER");
+  }
+  return "DESIGNER";
+}
+
+function getCodeLabel() {
+  if (typeof window !== "undefined" && window.i18n?.t) {
+    return window.i18n.t("label.code", "CODE");
+  }
+  return "CODE";
+}
+
 export function renderOutcome(outcome) {
   if (!outcome) {
     return;
   }
+  currentOutcome = outcome;
   setTheme(outcome.theme);
   setCopy(outcome);
 }
@@ -86,10 +118,23 @@ function syncThemeColor() {
 
 export function setCopy(outcome) {
   const dom = getDomRefs();
-  if (dom.codeTop) dom.codeTop.textContent = outcome.code || "";
+  if (dom.codeTop) {
+    const raw = outcome.code || "";
+    const normalized = raw.replace(/^CODE\\s*/i, "");
+    const label = getCodeLabel();
+    dom.codeTop.textContent = normalized ? `${label} ${normalized}` : raw;
+  }
   if (dom.codeName) dom.codeName.textContent = outcome.codeName || "";
-  if (dom.fortune) dom.fortune.textContent = outcome.fortune || "";
-  if (dom.description) dom.description.textContent = outcome.description || "";
-  if (dom.codeBottom) dom.codeBottom.textContent = "DESIGNER";
+  if (dom.fortune) dom.fortune.textContent = getLocalizedValue(outcome.fortune);
+  if (dom.description) dom.description.textContent = getLocalizedValue(outcome.description);
+  if (dom.codeBottom) dom.codeBottom.textContent = getDesignerLabel();
   if (dom.designer) dom.designer.textContent = outcome.designer || "";
+}
+
+if (typeof window !== "undefined" && window.i18n?.onChange) {
+  window.i18n.onChange(() => {
+    if (currentOutcome) {
+      setCopy(currentOutcome);
+    }
+  });
 }

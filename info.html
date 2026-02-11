@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Co Loc Co Loc — Information</title>
+    <title data-i18n="title.info">Co Loc Co Loc — Information</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -22,8 +22,15 @@
         </svg>
       </a>
       <nav class="nav">
-        <a class="nav-link nav-link--info" href="index.html">Fortune</a>
-        <a class="nav-link nav-link--lang" href="#" aria-label="Switch language to Vietnamese">VIE</a>
+        <a class="nav-link nav-link--info" href="index.html" data-i18n="nav.fortune">Fortune</a>
+        <a
+          id="langToggle"
+          class="nav-link nav-link--lang"
+          href="#"
+          aria-label="Switch language to Vietnamese"
+          data-i18n="nav.lang"
+          data-i18n-attr="aria-label:nav.langLabel"
+        >VIE</a>
       </nav>
     </header>
 
@@ -40,16 +47,25 @@
 
     <!-- SLIDER: controls horizontal content scroll -->
     <section class="slider">
-        <p class="swipe-text">[ Swipe / Scroll ]</p>
-        <label for="horizontalSlider" class="visually-hidden">Scroll content</label>
-        <input id="horizontalSlider" class="horizontal-slider" type="range" min="0" value="0" step="1" aria-label="Scroll content" />
-        <a class="button--start" href="index.html">[ Draw your fortune ]</a>
+        <p class="swipe-text" data-i18n="info.swipe">[ Swipe / Scroll ]</p>
+        <label for="horizontalSlider" class="visually-hidden" data-i18n="aria.scrollContent">Scroll content</label>
+        <input
+          id="horizontalSlider"
+          class="horizontal-slider"
+          type="range"
+          min="0"
+          value="0"
+          step="1"
+          aria-label="Scroll content"
+          data-i18n-attr="aria-label:aria.scrollContent"
+        />
+        <a class="button--start" href="index.html" data-i18n="info.start">[ Draw your fortune ]</a>
     </section>
 
     <!-- CONTENT -->
         <section class="intro_animation">
         <!-- Frame 1: Logo Behalf -->
-            <div class="frame_1" role="region" aria-label="Frame 1 — Logo" tabindex="0">
+            <div class="frame_1" role="region" aria-label="Frame 1 — Logo" data-i18n-attr="aria-label:aria.frame1" tabindex="0">
                 <svg class="frame1-origin" width="158" height="20" viewBox="0 0 158 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M10.4135 18.7019C12.1041 17.0221 14.5031 15.6668 18.0502 15.6668C23.8304 15.6668 28.0279 19.4058 28.0279 25.9601C28.0279 35.7144 20.0673 41.9992 10.7427 41.9992C6.76372 41.9992 3.92762 39.995 3.92762 35.6594L3.87232 11.326C3.87232 9.31917 2.55566 8.07372 0.712323 7.74928C0.222523 7.63938 0.00395597 7.42483 0.00395597 6.99049V5.90464C-0.0329107 5.52525 0.190923 5.17203 0.549056 5.03858C4.09352 3.57596 5.67616 2.43779 7.92239 0.436167C8.18309 0.140503 8.56492 -0.019103 8.95992 0.00182893H9.88686C10.2582 0.0122949 10.5531 0.318425 10.5426 0.689968C10.5426 0.695201 10.5426 0.700433 10.5426 0.705666L10.4135 18.7019ZM10.5241 33.8776C10.5241 36.3685 12.2121 37.6689 14.3951 37.6689C18.7033 37.6689 22.2951 34.3643 22.2951 29.3799C22.2951 24.3954 19.1351 21.4702 14.9876 21.4702C13.3076 21.478 11.7012 22.1609 10.532 23.3593L10.5241 33.8776ZM31.3064 28.9403C31.3064 21.4649 36.3756 15.6668 43.5725 15.6668C48.9181 15.6668 51.4725 19.2435 52.352 22.7104C52.4231 22.993 52.46 23.2834 52.4626 23.5765V24.3352C52.4942 24.6989 52.2651 25.0391 51.9149 25.149L37.8476 30.4578C38.9931 34.0346 41.7739 36.4182 46.0267 36.311C48.5468 36.2037 50.9063 35.0419 52.5179 33.1136C52.7786 32.7499 53.2816 32.6531 53.6608 32.8964L54.4271 33.438C54.7299 33.6892 54.8194 34.1157 54.643 34.4663C53.171 37.9881 49.5712 41.9443 43.7357 41.9992C36.3203 42.0542 31.3064 35.9185 31.3064 28.9403ZM45.8635 23.9559C46.3454 21.2478 44.9365 18.9112 42.1004 18.9112C37.9029 18.9112 36.2123 23.2442 37.4658 27.7419L45.8635 23.9559ZM66.8643 34.1968C66.8643 37.1221 67.3014 38.153 70.1349 38.5873C70.5062 38.5873 70.8064 38.8908 70.8064 39.2597C70.8064 39.3068 70.8011 39.3513 70.7906 39.3984L70.68 40.5366C70.6431 40.9212 70.3061 41.209 69.9163 41.1855H57.0499C56.6601 41.209 56.3231 40.9212 56.2862 40.5366L56.1756 39.3984C56.0966 39.0373 56.3283 38.6815 56.6917 38.603C56.7365 38.5925 56.7839 38.5873 56.8313 38.5873C59.6648 38.153 60.4837 37.1221 60.4837 34.1968L60.4311 11.3339C60.4311 9.32702 59.1144 8.08157 57.2711 7.75712C56.7813 7.64723 56.5627 7.43268 56.5627 6.99834V5.91249C56.5258 5.5331 56.7497 5.17726 57.1104 5.04643C60.6523 3.58381 62.2876 2.44564 64.5233 0.444017C64.784 0.148353 65.1658 -0.0112535 65.5608 0.00967842H66.4877C66.859 0.0201444 67.1513 0.326275 67.1408 0.695201C67.1408 0.700433 67.1408 0.708283 67.1408 0.713516L66.8775 21.6272C69.4265 18.9112 72.152 16.4779 76.1863 16.4779C80.4418 16.4779 82.9487 19.7825 82.9487 23.8486V34.1968C82.9487 37.1221 83.6597 38.153 86.4958 38.5873C86.8671 38.5899 87.1673 38.8934 87.1647 39.2624C87.1647 39.3068 87.1594 39.3539 87.1489 39.3984L87.0409 40.5366C87.0014 40.9212 86.6643 41.2064 86.2746 41.1855H73.1343C72.7472 41.2064 72.4101 40.9212 72.3706 40.5366L72.2626 39.3984C72.1836 39.0373 72.4101 38.6815 72.7735 38.603C72.8209 38.5925 72.8709 38.5873 72.9183 38.5873C75.7518 38.153 76.2416 37.1221 76.2416 34.1968V24.0631C76.2416 22.1688 75.0987 20.9783 73.3449 20.9783C71.3805 20.9783 68.8683 22.386 66.8564 25.149L66.8643 34.1968ZM93.1002 21.41L92.4998 20.1018C92.3497 19.7407 92.4893 19.3247 92.8263 19.1258C96.2497 17.0692 99.5887 16.0933 103.734 16.0933C107.441 16.0933 109.406 17.7731 109.406 21.4022L109.24 35.0079C109.24 36.0388 109.896 36.7976 111.041 36.7976C112.071 36.7845 113.079 36.5229 113.985 36.0388C114.367 35.8217 114.857 35.9289 114.912 36.3633L115.131 37.8808C115.21 38.2995 115.065 38.7312 114.749 39.019C112.971 40.6282 110.662 41.5335 108.258 41.5649C105.695 41.5649 104.005 40.1572 103.296 37.8808C101.005 40.0499 98.3353 41.7271 94.8435 41.7271C91.3517 41.7271 88.9 39.2362 88.9 35.8766C88.9 32.0827 92.3892 29.597 96.5894 28.0271C98.5538 27.2657 100.953 26.5069 102.699 26.0203L102.751 22.2839C102.751 20.8736 101.988 20.0599 100.516 20.0599C98.4432 20.0599 96.5894 20.5492 94.1957 21.7397C93.8454 21.9621 93.3793 21.86 93.1555 21.512C93.1344 21.4806 93.116 21.444 93.1002 21.41ZM102.915 28.4536C101.095 29.0737 99.3412 29.8744 97.6796 30.8372C96.1522 31.7582 95.1173 32.9514 95.1173 34.414C95.1173 35.9839 96.1522 37.0122 97.7902 37.0122C99.8073 37.0122 101.443 35.8766 102.859 34.6285L102.915 28.4536ZM124.95 0.444017C125.211 0.148353 125.593 -0.0112535 125.988 0.00967842H126.925C127.297 0.0201444 127.589 0.326275 127.578 0.695201C127.578 0.700433 127.578 0.708283 127.578 0.713516L127.523 34.2047C127.523 37.1299 128.561 38.1608 131.394 38.5951C131.765 38.5951 132.066 38.8987 132.066 39.2676C132.066 39.3147 132.06 39.3592 132.05 39.4063L131.939 40.5444C131.902 40.9291 131.565 41.2143 131.178 41.1933H117.222C116.834 41.2143 116.497 40.9291 116.461 40.5444L116.35 39.4063C116.271 39.0452 116.503 38.6893 116.866 38.6109C116.911 38.6004 116.958 38.5951 117.006 38.5951C119.839 38.1608 120.985 37.1299 120.985 34.2047L120.913 11.3234C120.913 9.31656 119.552 8.0711 117.698 7.74666C117.206 7.63677 116.99 7.42221 116.99 6.98787V5.90203C116.953 5.52264 117.177 5.16679 117.535 5.03597C121.079 3.58381 122.712 2.44564 124.95 0.444017ZM145.185 19.8951L145.13 34.1968C145.13 37.1221 146.164 38.153 149.001 38.5873C149.372 38.5873 149.672 38.8856 149.672 39.2545C149.672 39.3016 149.667 39.3513 149.656 39.3984L149.546 40.5366C149.509 40.9212 149.172 41.209 148.785 41.1855H134.825C134.436 41.2064 134.099 40.9212 134.059 40.5366L133.951 39.3984C133.872 39.0373 134.104 38.6815 134.467 38.603C134.512 38.5925 134.557 38.5873 134.604 38.5873C137.44 38.153 138.533 37.1221 138.533 34.1968L138.478 25.7979C138.478 22.2237 137.161 20.5439 135.152 19.6229C134.715 19.4058 134.444 19.1336 134.444 18.7019V17.1844C134.457 16.7788 134.799 16.4648 135.207 16.4779H138.478C138.478 8.57086 143.331 0.00967842 151.51 0.00967842C155.055 0.00967842 157.999 2.23108 157.999 5.15633C157.999 6.72622 157.29 7.64723 155.818 8.35107L151.51 10.303C151.184 10.4652 150.694 10.248 150.694 9.87125V8.84035C150.71 8.37985 150.839 7.92981 151.076 7.53211C152.219 5.52787 151.51 3.30646 149.167 3.30646C146.823 3.30646 144.748 5.47292 144.748 9.97068V16.4779H151.679C152.066 16.4439 152.406 16.7291 152.44 17.1137C152.44 17.1373 152.442 17.1608 152.44 17.1844V19.1886C152.445 19.5732 152.134 19.8924 151.747 19.8977C151.723 19.8977 151.7 19.8977 151.676 19.8977H145.182L145.185 19.8951Z" fill="currentColor"/>
                 </svg>
@@ -61,35 +77,35 @@
                 <img src="img/f.svg" alt="letter f" class="f">
             </div>
         <!-- Frame 2: Info -->
-            <div class="frame_2" role="region" aria-label="Frame 2 — Info" tabindex="0">
+            <div class="frame_2" role="region" aria-label="Frame 2 — Info" data-i18n-attr="aria-label:aria.frame2" tabindex="0">
                 <img class="coloc-hero" src="img/coloc01.svg" alt="Có Lộc Có Lộc">
-                <p class="frame2-caption">As we all race into the new year with confidence and momentum, let this gift from Behalf be a reminder for you to slow down while cantering freely.</p>
+                <p class="frame2-caption" data-i18n="info.frame2Caption">As we all race into the new year with confidence and momentum, let this gift from Behalf be a reminder for you to slow down while cantering freely.</p>
             </div>
         <!-- Frame 3: Info (cont.) -->
-            <div class="frame_3" role="region" aria-label="Frame 3 — Info continued" tabindex="0">
-                <p class="frame3-caption">Similar to the traditional mã đáo (“returning horses”) paintings, this package represents success and fortune. The six horses carry our individual wishes and a shared sense of togetherness among our herd of friends. May these lộc find stable in your home, invite you to embrace goodness and share kindness.</p>
+            <div class="frame_3" role="region" aria-label="Frame 3 — Info continued" data-i18n-attr="aria-label:aria.frame3" tabindex="0">
+                <p class="frame3-caption" data-i18n="info.frame3Caption">Similar to the traditional mã đáo (“returning horses”) paintings, this package represents success and fortune. The six horses carry our individual wishes and a shared sense of togetherness among our herd of friends. May these lộc find stable in your home, invite you to embrace goodness and share kindness.</p>
                 <img class="coloc-hero-bottom" src="img/coloc02.svg" alt="Có Lộc Có Lộc">
             </div>
         <!-- Frame 4: Credits -->
-            <div class="frame_4" role="region" aria-label="Frame 4 — Credits" tabindex="0">
+            <div class="frame_4" role="region" aria-label="Frame 4 — Credits" data-i18n-attr="aria-label:aria.frame4" tabindex="0">
                 <img src="img/coloc03.svg" alt="Có Lộc Có Lộc" class="coloc-overlay coloc-hero-top-left">
                 <img src="img/coloc03.svg" alt="Có Lộc Có Lộc" class="coloc-overlay coloc-hero-bottom-right">
-                <p class="frame4-caption">( * )<br>This experience runs fully on your device. No personal data is collected or processed.</p>
+                <p class="frame4-caption" data-i18n-html="info.frame4Caption">( * )<br>This experience runs fully on your device. No personal data is collected or processed.</p>
                 <ol class="frame4-credits">    
-                    <li> <span class="heading-3"> Creative Director </span>
+                    <li> <span class="heading-3" data-i18n="info.credits.creativeDirector"> Creative Director </span>
                         <br> Giang Nguyễn </li>
-                    <li> <span class="heading-3"> Designers </span>
+                    <li> <span class="heading-3" data-i18n="info.credits.designers"> Designers </span>
                         <br> Jinny 
                         <br> PP 
                         <br> Nhân 
                         <br> Nhật Lam 
                         <br> TAO Nhã </li>
-                    <li> <span class="heading-3"> Project Manager </span>
+                    <li> <span class="heading-3" data-i18n="info.credits.projectManager"> Project Manager </span>
                         <br> Bằng Lâm </li>
                 </ol>
             </div>
         <!-- Frame 5: Start -->
-            <div class="frame_5" role="region" aria-label="Frame 5 — Start" tabindex="0">
+            <div class="frame_5" role="region" aria-label="Frame 5 — Start" data-i18n-attr="aria-label:aria.frame5" tabindex="0">
                 <!-- <a class="start button--start" href="index.html">[ Bắt đầu hái lộc ]</a> -->
             </div>
         </section>
@@ -98,6 +114,7 @@
 
 <!-- Page main content ends here ////////////////// -->
      
+    <script type="module" src="./js/i18n.js"></script>
     <script src="./js/info.js" defer></script>
   </body>
 </html>
