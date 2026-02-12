@@ -20,7 +20,7 @@ if (shareButton) {
 async function downloadShareImage() {
   const horseId = resolveHorseId();
   const filename = `behalf2026.${horseId}.png`;
-  const path = `img/${filename}`;
+  const path = `assets/img/${filename}`;
   const shared = await tryNativeShare(path, filename);
   if (!shared) {
     triggerDownload(path, filename);

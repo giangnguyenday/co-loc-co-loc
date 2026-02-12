@@ -772,15 +772,15 @@ a {
 }
 
 .btn.motion-enable {
-  background: var(--colors-black);
+  background: var(--colors-primary-red);
   color: var(--colors-white);
   border-color: transparent;
   box-shadow: none;
 }
 
 .btn.motion-cancel {
-  background: var(--colors-primary-red);
-  color: var(--colors-white);
+  background: transparent;
+  color: var(--colors-primary-red);
   border-color: transparent;
   box-shadow: none;
 }
